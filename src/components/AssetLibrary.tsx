@@ -24,18 +24,39 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({ isOpen, onClose }) =
     
     setIsSyncing(true);
     try {
-        // Sync one by one or batch? Simple loop is fine for now.
+        let successCount = 0;
+        let failCount = 0;
+
         for (const asset of assets) {
-            await fetch('/api/assets', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(asset)
-            });
+            try {
+                const res = await fetch('/api/assets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(asset)
+                });
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error(`Sync failed for ${asset.name}:`, errorText);
+                    failCount++;
+                } else {
+                    successCount++;
+                }
+            } catch (err) {
+                console.error(`Network error for ${asset.name}:`, err);
+                failCount++;
+            }
         }
-        alert('Sync complete! Your assets are now in the cloud.');
+
+        if (failCount === 0) {
+            alert(`Sync complete! All ${successCount} assets uploaded.`);
+        } else {
+            alert(`Sync finished with issues. Uploaded: ${successCount}, Failed: ${failCount}. Check console for details.`);
+        }
+
     } catch (error) {
-        console.error(error);
-        alert('Sync failed. Please check your network or Vercel KV configuration.');
+        console.error('Critical sync error:', error);
+        alert('Critical sync error. Please check console.');
     } finally {
         setIsSyncing(false);
     }
