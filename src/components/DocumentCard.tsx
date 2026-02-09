@@ -148,31 +148,31 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center justify-between p-2 border-b border-gray-100 bg-white h-[52px] overflow-x-auto">
+        <div className="flex items-center justify-between p-2 border-b border-gray-100 bg-white h-[52px]">
           <div className="flex items-center gap-1 shrink-0">
             <TabButton
               active={viewMode === 'edit'}
               onClick={() => setViewMode('edit')}
-              icon={<Code className="w-4 h-4" />}
+              icon={<Code className="w-3.5 h-3.5" />}
               label="Edit"
             />
             <TabButton
               active={viewMode === 'preview'}
               onClick={() => setViewMode('preview')}
-              icon={<Eye className="w-4 h-4" />}
+              icon={<Eye className="w-3.5 h-3.5" />}
               label="Preview"
             />
             {!isBase && (
               <TabButton
                 active={viewMode === 'diff'}
                 onClick={() => setViewMode('diff')}
-                icon={<GitCompare className="w-4 h-4" />}
+                icon={<GitCompare className="w-3.5 h-3.5" />}
                 label="Diff"
               />
             )}
             
             {/* Quick Load Dropdown */}
-            <div className="relative ml-2">
+            <div className="relative ml-1">
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowAssetDropdown(!showAssetDropdown); }}
                     className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
@@ -183,15 +183,15 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                 </button>
                 
                 {showAssetDropdown && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 py-1 animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto">
                         {assets.length === 0 ? (
                             <div className="px-3 py-2 text-xs text-gray-500">Library is empty</div>
                         ) : (
                             assets.map(asset => (
                                 <button
                                     key={asset.id}
-                                    onClick={() => handleLoadAsset(asset.content, asset.name)}
-                                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 truncate"
+                                    onClick={() => { handleLoadAsset(asset.content, asset.name); setShowAssetDropdown(false); }}
+                                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 truncate block"
                                     title={asset.name}
                                 >
                                     {asset.name}
@@ -205,22 +205,22 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             {viewMode === 'diff' && !isBase && (
                 <button
                     onClick={() => setIsFullscreen(true)}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors ml-2 whitespace-nowrap"
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors ml-1 whitespace-nowrap"
                     title="Fullscreen Diff"
                 >
                     <Maximize2 className="w-3.5 h-3.5" />
-                    Fullscreen
+                    <span className="hidden xl:inline">Fullscreen</span>
                 </button>
             )}
           </div>
           
           {viewMode === 'diff' && !isBase && (
             <div className="flex items-center justify-end flex-1 pl-2 border-l border-gray-100 ml-2 min-w-0">
-                <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-md shrink-0">
+                <div className="flex items-center gap-0.5 bg-gray-100 p-0.5 rounded-md shrink-0">
                     <button
                     onClick={() => setSplitView(true)}
                     className={cn(
-                        "p-1 rounded text-xs flex items-center gap-1",
+                        "p-1 rounded text-xs flex items-center gap-1 w-7 justify-center",
                         splitView ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
                     )}
                     title="Split View"
@@ -230,7 +230,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                     <button
                     onClick={() => setSplitView(false)}
                     className={cn(
-                        "p-1 rounded text-xs flex items-center gap-1",
+                        "p-1 rounded text-xs flex items-center gap-1 w-7 justify-center",
                         !splitView ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
                     )}
                     title="Unified View"
