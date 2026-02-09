@@ -248,7 +248,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
         <div className="flex-1 overflow-auto relative bg-white">
           {viewMode === 'edit' && (
             <textarea
-              className="w-full h-full p-4 font-mono text-sm resize-none focus:outline-none text-gray-800"
+              className="w-full h-full p-4 font-mono text-sm leading-relaxed resize-none focus:outline-none text-gray-800"
               placeholder="Paste Markdown here..."
               value={doc.content}
               onChange={(e) => updateDoc(doc.id, e.target.value)}
@@ -257,7 +257,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
           )}
 
           {viewMode === 'preview' && (
-            <div className="prose prose-sm max-w-none p-4">
+            <div className="prose prose-sm max-w-none p-4 leading-relaxed">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {doc.content || '*No content*'}
               </ReactMarkdown>
