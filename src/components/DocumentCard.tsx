@@ -237,13 +237,6 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                 >
                     <Maximize2 className="w-4 h-4" />
                 </button>
-                <button
-                    onClick={() => setIsFullscreen(true)}
-                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="Fullscreen Diff"
-                >
-                    <Maximize2 className="w-4 h-4" />
-                </button>
             </div>
           )}
         </div>
