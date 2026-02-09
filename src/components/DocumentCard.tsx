@@ -213,33 +213,6 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                 </button>
             )}
           </div>
-          
-          {viewMode === 'diff' && !isBase && (
-            <div className="flex items-center justify-end flex-1 pl-2 border-l border-gray-100 ml-2 min-w-0">
-                <div className="flex items-center gap-0.5 bg-gray-100 p-0.5 rounded-md shrink-0">
-                    <button
-                    onClick={() => setSplitView(true)}
-                    className={cn(
-                        "p-1 rounded text-xs flex items-center gap-1 w-7 justify-center",
-                        splitView ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
-                    )}
-                    title="Split View"
-                    >
-                    <Columns className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                    onClick={() => setSplitView(false)}
-                    className={cn(
-                        "p-1 rounded text-xs flex items-center gap-1 w-7 justify-center",
-                        !splitView ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
-                    )}
-                    title="Unified View"
-                    >
-                    <FileText className="w-3.5 h-3.5" />
-                    </button>
-                </div>
-            </div>
-          )}
         </div>
 
         {/* Content */}
