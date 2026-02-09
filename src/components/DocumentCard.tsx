@@ -204,8 +204,8 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
           </div>
           
           {viewMode === 'diff' && !isBase && (
-            <div className="flex items-center justify-between w-full pl-4 border-l border-gray-100 ml-4">
-                <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-md">
+            <div className="flex items-center justify-between flex-1 pl-4 border-l border-gray-100 ml-4 min-w-0">
+                <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-md shrink-0">
                     <button
                     onClick={() => setSplitView(true)}
                     className={cn(
@@ -232,11 +232,11 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             
                 <button
                     onClick={() => setIsFullscreen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm ml-auto"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm ml-auto whitespace-nowrap"
                     title="Enter Fullscreen Mode"
                 >
                     <Maximize2 className="w-3.5 h-3.5" />
-                    Fullscreen Diff
+                    <span className="hidden sm:inline">Fullscreen</span>
                 </button>
             </div>
           )}
