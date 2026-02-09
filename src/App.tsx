@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDocStore } from './store/useDocStore';
 import { DocumentCard } from './components/DocumentCard';
-import { Plus, FileDiff } from 'lucide-react';
+import { AssetLibrary } from './components/AssetLibrary';
+import { Plus, FileDiff, Database } from 'lucide-react';
 
 function App() {
   const { docs, baseDocId, addDoc } = useDocStore();
+  const [isAssetLibraryOpen, setIsAssetLibraryOpen] = useState(false);
 
   const baseDoc = docs.find(d => d.id === baseDocId);
 
@@ -17,11 +19,11 @@ function App() {
             <div className="bg-blue-600 p-2 rounded-lg text-white">
               <FileDiff className="w-5 h-5" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Markdown Diff Tool</h1>
+            <h1 className="text-xl font-bold text-gray-900 hidden sm:block">Markdown Diff Tool</h1>
           </div>
           
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-             <span className="hidden sm:inline">
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+             <span className="hidden lg:inline mr-2">
                Comparing <strong>{docs.length}</strong> documents
                {baseDoc && (
                  <>
@@ -29,12 +31,22 @@ function App() {
                  </>
                )}
              </span>
+             
              <button
-              onClick={addDoc}
+              onClick={() => setIsAssetLibraryOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium shadow-sm"
+              title="Open Asset Library"
+            >
+              <Database className="w-4 h-4" />
+              <span className="hidden sm:inline">Library</span>
+            </button>
+
+             <button
+              onClick={() => addDoc()}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              Add Document
+              <span className="hidden sm:inline">Add Document</span>
             </button>
           </div>
         </div>
@@ -46,12 +58,20 @@ function App() {
           {docs.length === 0 ? (
              <div className="text-center py-20">
                 <p className="text-gray-500 mb-4">No documents to compare.</p>
-                <button
-                  onClick={addDoc}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Create First Document
-                </button>
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => addDoc()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Create New Document
+                  </button>
+                  <button
+                    onClick={() => setIsAssetLibraryOpen(true)}
+                    className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  >
+                    Load from Library
+                  </button>
+                </div>
              </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
@@ -63,13 +83,12 @@ function App() {
                   baseContent={baseDoc?.content}
                 />
               ))}
-              
-              {/* Empty state card as an "Add" button placeholder if you want, 
-                  but we have the header button. Let's stick to the grid of cards. */}
             </div>
           )}
         </div>
       </main>
+
+      <AssetLibrary isOpen={isAssetLibraryOpen} onClose={() => setIsAssetLibraryOpen(false)} />
     </div>
   );
 }

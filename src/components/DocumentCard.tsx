@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
-import { Trash2, Code, Eye, GitCompare, CheckCircle, Columns, FileText, Maximize2, X, Minimize2 } from 'lucide-react';
+import { Trash2, Code, Eye, GitCompare, CheckCircle, Columns, FileText, Maximize2, X, Minimize2, Save } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { MarkdownDoc, ViewMode } from '../types';
@@ -19,10 +19,11 @@ interface DocumentCardProps {
 }
 
 export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseContent }) => {
-  const { removeDoc, updateDoc, setBaseDoc, updateName } = useDocStore();
+  const { removeDoc, updateDoc, setBaseDoc, updateName, addAsset } = useDocStore();
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [splitView, setSplitView] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
   // Handle ESC key to exit fullscreen
   useEffect(() => {
@@ -32,6 +33,13 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
     if (isFullscreen) window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isFullscreen]);
+
+  const handleSaveToLibrary = () => {
+    if (!doc.content) return;
+    addAsset(doc.name, doc.content);
+    setShowSaveSuccess(true);
+    setTimeout(() => setShowSaveSuccess(false), 2000);
+  };
 
   const renderDiffViewer = (isFull = false) => (
     <ReactDiffViewer
@@ -78,7 +86,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             placeholder="Document Name"
           />
           <div className="flex items-center gap-2">
-            {!isBase && (
+            {!isBase ? (
               <button
                 onClick={() => setBaseDoc(doc.id)}
                 className="text-xs flex items-center gap-1 px-2 py-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -87,13 +95,34 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                 <CheckCircle className="w-3 h-3" />
                 Set as Base
               </button>
-            )}
-            {isBase && (
+            ) : (
                <span className="text-xs flex items-center gap-1 px-2 py-1 text-blue-600 bg-blue-50 rounded font-medium cursor-default">
                  <CheckCircle className="w-3 h-3" />
                  Base
                </span>
             )}
+
+            <button
+                onClick={handleSaveToLibrary}
+                className={cn(
+                    "text-xs flex items-center gap-1 px-2 py-1 rounded transition-all duration-200",
+                    showSaveSuccess 
+                        ? "text-green-600 bg-green-50" 
+                        : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                )}
+                title="Save to Asset Library"
+            >
+                {showSaveSuccess ? (
+                    <>
+                        <CheckCircle className="w-3 h-3" /> Saved
+                    </>
+                ) : (
+                    <>
+                        <Save className="w-3 h-3" /> Save
+                    </>
+                )}
+            </button>
+
             <button
               onClick={() => removeDoc(doc.id)}
               className="text-gray-400 hover:text-red-500 p-1 hover:bg-red-50 rounded transition-colors"
