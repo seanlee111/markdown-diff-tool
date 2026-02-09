@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Save, FileText, Plus, Download, Trash2, Search, Upload, Copy, Clipboard, CheckCircle } from 'lucide-react';
+import { X, Save, FileText, Plus, Download, Trash2, Search, Upload, Copy, Clipboard, CheckCircle, CloudUpload } from 'lucide-react';
 import { useDocStore } from '../store/useDocStore';
 import { cn } from '../lib/utils';
 
@@ -15,7 +15,31 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({ isOpen, onClose }) =
   const [pasteContent, setPasteContent] = useState('');
   const [pasteName, setPasteName] = useState('');
   const [justAddedId, setJustAddedId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleSyncToCloud = async () => {
+    if (assets.length === 0) return;
+    if (!confirm('This will upload all your local assets to the shared cloud library. Continue?')) return;
+    
+    setIsSyncing(true);
+    try {
+        // Sync one by one or batch? Simple loop is fine for now.
+        for (const asset of assets) {
+            await fetch('/api/assets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(asset)
+            });
+        }
+        alert('Sync complete! Your assets are now in the cloud.');
+    } catch (error) {
+        console.error(error);
+        alert('Sync failed. Please check your network or Vercel KV configuration.');
+    } finally {
+        setIsSyncing(false);
+    }
+  };
 
   const filteredAssets = assets.filter(asset => 
     asset.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -196,8 +220,17 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 text-center">
-            Assets are saved in your browser's local storage.
+        <div className="p-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between">
+            <span>Assets stored in Vercel KV</span>
+            <button 
+                onClick={handleSyncToCloud}
+                disabled={isSyncing || assets.length === 0}
+                className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Push all local assets to cloud"
+            >
+                <CloudUpload className="w-3.5 h-3.5" />
+                {isSyncing ? 'Syncing...' : 'Sync Local to Cloud'}
+            </button>
         </div>
       </div>
     </div>
