@@ -1,72 +1,103 @@
 import { createClient } from '@vercel/kv';
+import Redis from 'ioredis';
 
 // Switch to Node.js runtime for better compatibility and logging
-// Edge runtime can sometimes have issues with specific Redis clients or connection pooling
 export const config = {
   runtime: 'nodejs',
 };
 
 export default async function handler(request, response) {
-  // In Node.js runtime, we use (req, res) signature, but Vercel also supports standard Request/Response if we use specific helpers.
-  // However, standard Vercel Serverless Functions use (req, res).
-  // Let's use the standard Node.js style (req, res) for maximum reliability.
-  
   const { method } = request;
   const url = new URL(request.url, `http://${request.headers.host}`);
 
-  // Initialize KV client with fallback for generic Redis/Upstash env vars
+  console.log(`[API] ${method} ${url.pathname} - Initializing DB connection...`);
+
+  // Strategy 1: Try Vercel KV / Upstash HTTP API (Preferred for Serverless)
   const kvUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
   const kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  console.log(`[API] ${method} ${url.pathname} - Connecting to KV...`);
+  // Strategy 2: Try Standard Redis URL (ioredis)
+  const redisUrl = process.env.REDIS_URL;
 
-  if (!kvUrl || !kvToken) {
-    console.error('[API] Missing Vercel KV/Redis environment variables');
-    return response.status(500).json({ 
-        error: 'Server Misconfiguration: Missing Redis credentials. Please check Vercel Storage settings.' 
-    });
+  let dbClient = null;
+  let dbType = 'none';
+
+  if (kvUrl && kvToken) {
+      console.log('[API] Using Vercel KV / Upstash HTTP');
+      dbType = 'kv';
+      dbClient = createClient({
+        url: kvUrl,
+        token: kvToken,
+      });
+  } else if (redisUrl) {
+      console.log('[API] Using Standard Redis URL (ioredis)');
+      dbType = 'redis';
+      try {
+          dbClient = new Redis(redisUrl);
+      } catch (e) {
+          console.error('[API] Failed to initialize ioredis:', e);
+      }
+  } else {
+      console.error('[API] No valid database credentials found.');
+      console.error('Checked env vars: KV_REST_API_URL, UPSTASH_REDIS_REST_URL, REDIS_URL');
+      return response.status(500).json({ 
+        error: 'Server Misconfiguration: Missing Redis credentials.',
+        details: 'Please set REDIS_URL or KV_REST_API_URL in Vercel settings.'
+      });
   }
-
-  const kv = createClient({
-    url: kvUrl,
-    token: kvToken,
-  });
 
   try {
     if (method === 'GET') {
-      // Get all assets
-      const assets = await kv.hgetall('assets');
-      console.log('[API] Fetch assets success');
-      const result = assets ? Object.values(assets) : [];
+      let result = [];
+      
+      if (dbType === 'kv') {
+          const assets = await dbClient.hgetall('assets');
+          result = assets ? Object.values(assets) : [];
+      } else if (dbType === 'redis') {
+          const assets = await dbClient.hgetall('assets');
+          // ioredis hgetall returns object directly
+          result = assets ? Object.values(assets).map(item => typeof item === 'string' ? JSON.parse(item) : item) : [];
+      }
+
+      console.log(`[API] Fetch assets success (${result.length} items)`);
       return response.status(200).json(result);
     }
 
     if (method === 'POST') {
-      const body = request.body; // Vercel automatically parses JSON body
+      const body = request.body;
       const { id, name, content } = body;
       
       if (!id || !name || !content) {
-        console.warn('[API] POST missing fields');
         return response.status(400).json({ error: 'Missing fields' });
       }
       
-      // Store in Hash: assets, field: id, value: body
-      await kv.hset('assets', { [id]: body });
-      console.log(`[API] Saved asset ${id}`);
+      const valueToStore = dbType === 'redis' ? JSON.stringify(body) : body;
       
+      if (dbType === 'kv') {
+          await dbClient.hset('assets', { [id]: valueToStore });
+      } else if (dbType === 'redis') {
+          await dbClient.hset('assets', id, valueToStore);
+      }
+
+      console.log(`[API] Saved asset ${id}`);
       return response.status(200).json(body);
     }
 
     if (method === 'DELETE') {
       const id = url.searchParams.get('id');
-      if (!id) {
-        return response.status(400).json({ error: 'Missing id' });
-      }
+      if (!id) return response.status(400).json({ error: 'Missing id' });
       
-      await kv.hdel('assets', id);
+      await dbClient.hdel('assets', id);
       console.log(`[API] Deleted asset ${id}`);
-      
       return response.status(200).json({ success: true });
+    }
+
+    // Cleanup ioredis connection if needed (though in serverless it might be reused)
+    if (dbType === 'redis') {
+        // dbClient.quit(); // Don't quit immediately in serverless to allow reuse? 
+        // Actually for Vercel functions, better to let it handle connection or quit.
+        // For safety/simplicity in this fix:
+        await dbClient.quit();
     }
 
     return response.status(405).send('Method not allowed');
