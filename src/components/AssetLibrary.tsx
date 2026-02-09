@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Save, FileText, Plus, Download, Trash2, Search, Upload, Copy, Clipboard } from 'lucide-react';
+import { X, Save, FileText, Plus, Download, Trash2, Search, Upload, Copy, Clipboard, CheckCircle } from 'lucide-react';
 import { useDocStore } from '../store/useDocStore';
 import { cn } from '../lib/utils';
 
@@ -14,6 +14,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({ isOpen, onClose }) =
   const [isPasting, setIsPasting] = useState(false);
   const [pasteContent, setPasteContent] = useState('');
   const [pasteName, setPasteName] = useState('');
+  const [justAddedId, setJustAddedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredAssets = assets.filter(asset => 
@@ -44,6 +45,12 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({ isOpen, onClose }) =
     setPasteContent('');
     setPasteName('');
     setIsPasting(false);
+  };
+
+  const handleUseAsset = (content: string, name: string, id: string) => {
+    addDoc(content, name);
+    setJustAddedId(id);
+    setTimeout(() => setJustAddedId(null), 2000);
   };
 
   if (!isOpen) return null;
@@ -163,14 +170,24 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({ isOpen, onClose }) =
                         </div>
                         <div className="flex gap-2">
                             <button 
-                                onClick={() => {
-                                    addDoc(asset.content, asset.name);
-                                    onClose();
-                                }}
-                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded text-xs font-medium hover:bg-blue-100 transition-colors"
+                                onClick={() => handleUseAsset(asset.content, asset.name, asset.id)}
+                                disabled={justAddedId === asset.id}
+                                className={cn(
+                                  "flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all duration-200",
+                                  justAddedId === asset.id 
+                                    ? "bg-green-50 text-green-700 cursor-default"
+                                    : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                )}
                             >
-                                <Plus className="w-3.5 h-3.5" />
-                                Use as Doc
+                                {justAddedId === asset.id ? (
+                                  <>
+                                    <CheckCircle className="w-3.5 h-3.5" /> Added
+                                  </>
+                                ) : (
+                                  <>
+                                    <Plus className="w-3.5 h-3.5" /> Use as Doc
+                                  </>
+                                )}
                             </button>
                         </div>
                     </div>

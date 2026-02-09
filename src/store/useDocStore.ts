@@ -35,6 +35,19 @@ export const useDocStore = create<DocState>()(
       
       addDoc: (initialContent = '', initialName) =>
         set((state) => {
+          // Check if we should overwrite an existing empty/default doc
+          const emptyDoc = state.docs.find(d => 
+            d.content.trim() === '' && 
+            d.name.startsWith('Document ') && 
+            d.id !== state.baseDocId // Don't overwrite base doc automatically unless intended, but requirement says "example block". Let's say "empty content".
+          );
+
+          if (emptyDoc) {
+            return {
+              docs: state.docs.map(d => d.id === emptyDoc.id ? { ...d, content: initialContent, name: initialName || d.name } : d)
+            };
+          }
+
           const newId = crypto.randomUUID();
           return {
             docs: [

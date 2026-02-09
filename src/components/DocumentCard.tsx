@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
-import { Trash2, Code, Eye, GitCompare, CheckCircle, Columns, FileText, Maximize2, X, Minimize2, Save } from 'lucide-react';
+import { Trash2, Code, Eye, GitCompare, CheckCircle, Columns, FileText, Maximize2, X, Minimize2, Save, Download } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { MarkdownDoc, ViewMode } from '../types';
@@ -19,11 +19,12 @@ interface DocumentCardProps {
 }
 
 export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseContent }) => {
-  const { removeDoc, updateDoc, setBaseDoc, updateName, addAsset } = useDocStore();
+  const { removeDoc, updateDoc, setBaseDoc, updateName, addAsset, assets } = useDocStore();
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
   const [splitView, setSplitView] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [showAssetDropdown, setShowAssetDropdown] = useState(false);
 
   // Handle ESC key to exit fullscreen
   useEffect(() => {
@@ -34,11 +35,24 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isFullscreen]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showAssetDropdown) return;
+    const handleClick = () => setShowAssetDropdown(false);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [showAssetDropdown]);
+
   const handleSaveToLibrary = () => {
     if (!doc.content) return;
     addAsset(doc.name, doc.content);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 2000);
+  };
+  
+  const handleLoadAsset = (content: string, name: string) => {
+    updateDoc(doc.id, content);
+    updateName(doc.id, name);
   };
 
   const renderDiffViewer = (isFull = false) => (
@@ -156,6 +170,37 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                 label="Diff"
               />
             )}
+            
+            {/* Quick Load Dropdown */}
+            <div className="relative ml-2">
+                <button
+                    onClick={(e) => { e.stopPropagation(); setShowAssetDropdown(!showAssetDropdown); }}
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="Load from Library"
+                >
+                    <Download className="w-3.5 h-3.5" />
+                    Load
+                </button>
+                
+                {showAssetDropdown && (
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-20 py-1 animate-in fade-in zoom-in-95 duration-100">
+                        {assets.length === 0 ? (
+                            <div className="px-3 py-2 text-xs text-gray-500">Library is empty</div>
+                        ) : (
+                            assets.map(asset => (
+                                <button
+                                    key={asset.id}
+                                    onClick={() => handleLoadAsset(asset.content, asset.name)}
+                                    className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 truncate"
+                                    title={asset.name}
+                                >
+                                    {asset.name}
+                                </button>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
           </div>
           
           {viewMode === 'diff' && !isBase && (
