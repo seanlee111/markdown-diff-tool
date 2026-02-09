@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { createClient } from '@vercel/kv';
 
 export const config = {
   runtime: 'edge',
@@ -7,6 +7,25 @@ export const config = {
 export default async function handler(request: Request) {
   const url = new URL(request.url);
   const method = request.method;
+
+  // Initialize KV client with fallback for generic Redis/Upstash env vars
+  const kvUrl = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const kvToken = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!kvUrl || !kvToken) {
+    console.error('Missing Vercel KV/Redis environment variables');
+    return new Response(JSON.stringify({ 
+        error: 'Server Misconfiguration: Missing Redis credentials. Please check Vercel Storage settings.' 
+    }), { 
+        status: 500,
+        headers: { 'content-type': 'application/json' }
+    });
+  }
+
+  const kv = createClient({
+    url: kvUrl,
+    token: kvToken,
+  });
 
   try {
     if (method === 'GET') {
