@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Trash2, FileText, Code, Eye, GitCompare, CheckCircle } from 'lucide-react';
+import ReactDiffViewer, { DiffMethod } from 'react-diff-viewer-continued';
+import { Trash2, Code, Eye, GitCompare, CheckCircle, Columns, FileText } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { MarkdownDoc, ViewMode } from '../types';
 import { useDocStore } from '../store/useDocStore';
-import { generateDiff } from '../utils/diff';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,11 +21,7 @@ interface DocumentCardProps {
 export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseContent }) => {
   const { removeDoc, updateDoc, setBaseDoc, updateName } = useDocStore();
   const [viewMode, setViewMode] = useState<ViewMode>('edit');
-
-  const diffContent = useMemo(() => {
-    if (isBase || !baseContent) return '';
-    return generateDiff(doc.name, baseContent, doc.content);
-  }, [doc.name, doc.content, baseContent, isBase]);
+  const [splitView, setSplitView] = useState(true);
 
   return (
     <div className={cn(
@@ -69,26 +65,55 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 border-b border-gray-100 bg-white">
-        <TabButton
-          active={viewMode === 'edit'}
-          onClick={() => setViewMode('edit')}
-          icon={<Code className="w-4 h-4" />}
-          label="Edit"
-        />
-        <TabButton
-          active={viewMode === 'preview'}
-          onClick={() => setViewMode('preview')}
-          icon={<Eye className="w-4 h-4" />}
-          label="Preview"
-        />
-        {!isBase && (
+      <div className="flex items-center justify-between p-2 border-b border-gray-100 bg-white">
+        <div className="flex items-center gap-1">
           <TabButton
-            active={viewMode === 'diff'}
-            onClick={() => setViewMode('diff')}
-            icon={<GitCompare className="w-4 h-4" />}
-            label="Diff vs Base"
+            active={viewMode === 'edit'}
+            onClick={() => setViewMode('edit')}
+            icon={<Code className="w-4 h-4" />}
+            label="Edit"
           />
+          <TabButton
+            active={viewMode === 'preview'}
+            onClick={() => setViewMode('preview')}
+            icon={<Eye className="w-4 h-4" />}
+            label="Preview"
+          />
+          {!isBase && (
+            <TabButton
+              active={viewMode === 'diff'}
+              onClick={() => setViewMode('diff')}
+              icon={<GitCompare className="w-4 h-4" />}
+              label="Diff"
+            />
+          )}
+        </div>
+        
+        {viewMode === 'diff' && !isBase && (
+          <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-md">
+            <button
+              onClick={() => setSplitView(true)}
+              className={cn(
+                "p-1 rounded text-xs flex items-center gap-1",
+                splitView ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
+              )}
+              title="Split View"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span className="sr-only">Split</span>
+            </button>
+            <button
+              onClick={() => setSplitView(false)}
+              className={cn(
+                "p-1 rounded text-xs flex items-center gap-1",
+                !splitView ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
+              )}
+              title="Unified View"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span className="sr-only">Unified</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -113,23 +138,27 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
         )}
 
         {viewMode === 'diff' && !isBase && (
-          <div className="h-full overflow-auto bg-gray-50 p-4">
-             {/* Unified Diff View */}
-            <pre className="font-mono text-xs whitespace-pre overflow-x-auto">
-              {diffContent.split('\n').map((line, idx) => {
-                let colorClass = "text-gray-500";
-                if (line.startsWith('+') && !line.startsWith('+++')) colorClass = "text-green-600 bg-green-50 block w-full";
-                else if (line.startsWith('-') && !line.startsWith('---')) colorClass = "text-red-600 bg-red-50 block w-full";
-                else if (line.startsWith('@@')) colorClass = "text-purple-600 block w-full mt-2 mb-1 font-bold";
-                
-                return (
-                  <span key={idx} className={colorClass}>
-                    {line}
-                    {'\n'}
-                  </span>
-                );
-              })}
-            </pre>
+          <div className="h-full overflow-auto bg-white text-xs">
+             <ReactDiffViewer
+               oldValue={baseContent || ''}
+               newValue={doc.content || ''}
+               splitView={splitView}
+               compareMethod={DiffMethod.WORDS}
+               styles={{
+                 variables: {
+                   light: {
+                     codeFoldGutterBackground: '#f9fafb',
+                     codeFoldBackground: '#f3f4f6',
+                   }
+                 },
+                 lineNumber: {
+                    color: '#9ca3af',
+                 },
+                 content: {
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                 }
+               }}
+             />
           </div>
         )}
       </div>
