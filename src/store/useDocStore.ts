@@ -19,13 +19,14 @@ interface DocState {
   updateName: (id: string, name: string) => void;
   setBaseDoc: (id: string) => void;
   // Asset actions
-  addAsset: (name: string, content: string) => void;
-  removeAsset: (id: string) => void;
+  fetchAssets: () => Promise<void>;
+  addAsset: (name: string, content: string) => Promise<void>;
+  removeAsset: (id: string) => Promise<void>;
 }
 
 export const useDocStore = create<DocState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       docs: [
         { id: '1', name: 'Document A (Base)', content: '# Hello World\n\nThis is the base document.' },
         { id: '2', name: 'Document B', content: '# Hello World\n\nThis is the comparison document.\n\nIt has some changes.' },
@@ -75,24 +76,59 @@ export const useDocStore = create<DocState>()(
 
       setBaseDoc: (id) => set({ baseDocId: id }),
 
-      addAsset: (name, content) =>
+      fetchAssets: async () => {
+        try {
+            const res = await fetch('/api/assets');
+            if (res.ok) {
+                const remoteAssets = await res.json();
+                if (Array.isArray(remoteAssets)) {
+                    set({ assets: remoteAssets });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch assets:', error);
+        }
+      },
+
+      addAsset: async (name, content) => {
+        const newAsset = { id: crypto.randomUUID(), name, content, createdAt: Date.now() };
+        // Optimistic update
         set((state) => ({
           assets: [
             ...state.assets,
-            { id: crypto.randomUUID(), name, content, createdAt: Date.now() }
+            newAsset
           ]
-        })),
+        }));
+        
+        // Sync to server
+        try {
+            await fetch('/api/assets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newAsset)
+            });
+        } catch (error) {
+            console.error('Failed to sync asset to server:', error);
+        }
+      },
 
-      removeAsset: (id) =>
+      removeAsset: async (id) => {
+        // Optimistic update
         set((state) => ({
           assets: state.assets.filter(a => a.id !== id)
-        })),
+        }));
+        
+        // Sync to server
+        try {
+            await fetch(`/api/assets?id=${id}`, { method: 'DELETE' });
+        } catch (error) {
+             console.error('Failed to delete asset from server:', error);
+        }
+      },
     }),
     {
       name: 'markdown-diff-storage',
-      partialize: (state) => ({ assets: state.assets }), // Only persist assets, or persist everything? Let's persist assets mainly.
-      // Actually, persisting docs might be annoying if user wants a fresh start. 
-      // Let's persist ONLY assets for now as per requirement "cache these five assets".
+      partialize: (state) => ({ assets: state.assets }), 
     }
   )
 );

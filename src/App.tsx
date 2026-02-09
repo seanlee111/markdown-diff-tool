@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDocStore } from './store/useDocStore';
 import { DocumentCard } from './components/DocumentCard';
 import { AssetLibrary } from './components/AssetLibrary';
 import { Plus, FileDiff, Database } from 'lucide-react';
 
 function App() {
-  const { docs, baseDocId, addDoc } = useDocStore();
+  const { docs, baseDocId, addDoc, fetchAssets } = useDocStore();
   const [isAssetLibraryOpen, setIsAssetLibraryOpen] = useState(false);
+
+  useEffect(() => {
+    fetchAssets();
+  }, [fetchAssets]);
 
   const baseDoc = docs.find(d => d.id === baseDocId);
 

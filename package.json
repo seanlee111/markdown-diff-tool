@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@types/diff": "^7.0.2",
+    "@vercel/kv": "^3.0.0",
     "clsx": "^2.1.1",
     "diff": "^8.0.3",
     "lucide-react": "^0.511.0",

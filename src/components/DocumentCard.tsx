@@ -175,7 +175,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             <div className="relative ml-1">
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowAssetDropdown(!showAssetDropdown); }}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
+                    className="flex items-center gap-1 px-1.5 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
                     title="Load from Library"
                 >
                     <Download className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             {viewMode === 'diff' && !isBase && (
                 <button
                     onClick={() => setIsFullscreen(true)}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors ml-1 whitespace-nowrap"
+                    className="flex items-center gap-1 px-1.5 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors ml-1 whitespace-nowrap"
                     title="Fullscreen Diff"
                 >
                     <Maximize2 className="w-3.5 h-3.5" />
