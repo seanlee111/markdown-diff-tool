@@ -91,26 +91,26 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
         isBase ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200 hover:border-gray-300"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100 h-[60px]">
           <input
             type="text"
             value={doc.name}
             onChange={(e) => updateName(doc.id, e.target.value)}
-            className="bg-transparent font-medium text-gray-700 focus:outline-none focus:underline"
+            className="bg-transparent font-medium text-gray-700 focus:outline-none focus:underline flex-1 mr-4 min-w-0"
             placeholder="Document Name"
           />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {!isBase ? (
               <button
                 onClick={() => setBaseDoc(doc.id)}
-                className="text-xs flex items-center gap-1 px-2 py-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                className="text-xs flex items-center gap-1 px-2 py-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors h-8"
                 title="Set as Base Document"
               >
                 <CheckCircle className="w-3 h-3" />
                 Set as Base
               </button>
             ) : (
-               <span className="text-xs flex items-center gap-1 px-2 py-1 text-blue-600 bg-blue-50 rounded font-medium cursor-default">
+               <span className="text-xs flex items-center gap-1 px-2 py-1 text-blue-600 bg-blue-50 rounded font-medium cursor-default h-8">
                  <CheckCircle className="w-3 h-3" />
                  Base
                </span>
@@ -119,7 +119,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             <button
                 onClick={handleSaveToLibrary}
                 className={cn(
-                    "text-xs flex items-center gap-1 px-2 py-1 rounded transition-all duration-200",
+                    "text-xs flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 h-8",
                     showSaveSuccess 
                         ? "text-green-600 bg-green-50" 
                         : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
@@ -139,7 +139,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
 
             <button
               onClick={() => removeDoc(doc.id)}
-              className="text-gray-400 hover:text-red-500 p-1 hover:bg-red-50 rounded transition-colors"
+              className="text-gray-400 hover:text-red-500 p-1 hover:bg-red-50 rounded transition-colors h-8 w-8 flex items-center justify-center"
               title="Remove Document"
             >
               <Trash2 className="w-4 h-4" />
@@ -148,8 +148,8 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center justify-between p-2 border-b border-gray-100 bg-white">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between p-2 border-b border-gray-100 bg-white h-[52px] overflow-x-auto">
+          <div className="flex items-center gap-1 shrink-0">
             <TabButton
               active={viewMode === 'edit'}
               onClick={() => setViewMode('edit')}
@@ -175,7 +175,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             <div className="relative ml-2">
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowAssetDropdown(!showAssetDropdown); }}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors whitespace-nowrap"
                     title="Load from Library"
                 >
                     <Download className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
             {viewMode === 'diff' && !isBase && (
                 <button
                     onClick={() => setIsFullscreen(true)}
-                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors ml-2"
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors ml-2 whitespace-nowrap"
                     title="Fullscreen Diff"
                 >
                     <Maximize2 className="w-3.5 h-3.5" />
@@ -215,7 +215,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
           </div>
           
           {viewMode === 'diff' && !isBase && (
-            <div className="flex items-center justify-end flex-1 pl-4 border-l border-gray-100 ml-4 min-w-0">
+            <div className="flex items-center justify-end flex-1 pl-2 border-l border-gray-100 ml-2 min-w-0">
                 <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-md shrink-0">
                     <button
                     onClick={() => setSplitView(true)}
@@ -226,7 +226,6 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                     title="Split View"
                     >
                     <Columns className="w-3.5 h-3.5" />
-                    <span className="sr-only">Split</span>
                     </button>
                     <button
                     onClick={() => setSplitView(false)}
@@ -237,7 +236,6 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({ doc, isBase, baseCon
                     title="Unified View"
                     >
                     <FileText className="w-3.5 h-3.5" />
-                    <span className="sr-only">Unified</span>
                     </button>
                 </div>
             </div>
